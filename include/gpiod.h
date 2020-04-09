@@ -676,6 +676,91 @@ int gpiod_chip_find_lines(struct gpiod_chip *chip, const char **names,
 /**
  * @}
  *
+ * @defgroup __line_watch__ Monitoring GPIO line status changes
+ * @{
+ *
+ * These data structures and functions are on the boundary of chip and line
+ * operations. They allow to monitor the changes in status (made by other
+ * processes or the kernel) of GPIO lines exposed by given chip.
+ */
+
+/**
+ * @brief Line watch event types.
+ */
+enum {
+	GPIOD_WATCH_EVENT_LINE_REQUESTED = 1,
+	/**< This line has been requested. */
+	GPIOD_WATCH_EVENT_LINE_RELEASED,
+	/**< This line has been released. */
+	GPIOD_WATCH_EVENT_LINE_CONFIG_CHANGE,
+	/**< This line configuration has changed. */
+};
+
+struct gpiod_watch_event {
+	struct gpiod_line *line;
+	int event_type;
+	struct timespec ts;
+};
+
+int gpiod_chip_watch_event_wait(struct gpiod_chip *chip,
+				const struct timespec *timeout) GPIOD_API;
+
+int gpiod_chip_watch_event_read(struct gpiod_chip *chip,
+				struct gpiod_watch_event *event) GPIOD_API;
+
+int gpiod_chip_watch_event_read_multiple(struct gpiod_chip *chip,
+					 struct gpiod_watch_event *events,
+					 unsigned int num_events) GPIOD_API;
+
+int gpiod_chip_watch_get_fd(struct gpiod_chip *chip) GPIOD_API;
+
+struct gpiod_line *
+gpiod_chip_get_line_watched(struct gpiod_chip *chip,
+			    unsigned int offset) GPIOD_API;
+
+int gpiod_chip_get_lines_watched(struct gpiod_chip *chip,
+				 unsigned int *offsets,
+				 unsigned int num_offsets,
+				 struct gpiod_line_bulk *bulk) GPIOD_API;
+
+int gpiod_chip_get_all_lines_watched(struct gpiod_chip *chip,
+				     struct gpiod_line_bulk *bulk) GPIOD_API;
+
+struct gpiod_line *
+gpiod_chip_find_line_watched(struct gpiod_chip *chip,
+			     const char *name) GPIOD_API;
+
+int gpiod_chip_find_lines_watched(struct gpiod_chip *chip, const char **names,
+				  struct gpiod_line_bulk *bulk) GPIOD_API;
+
+/**
+ * @brief Start watching the status changes of this GPIO line.
+ * @param line GPIO line to be watched.
+ * @return 0 on success, -1 on failure.
+ */
+int gpiod_line_watch(struct gpiod_line *line) GPIOD_API;
+
+int gpiod_line_watch_bulk(struct gpiod_line_bulk *bulk) GPIOD_API;
+
+/**
+ * @brief Stop watching the status changes of this GPIO line.
+ * @param line GPIO line to stop watching.
+ * @return 0 on success, -1 on failure.
+ */
+int gpiod_line_unwatch(struct gpiod_line *line) GPIOD_API;
+
+int gpiod_line_unwatch_bulk(struct gpiod_line_bulk *bulk) GPIOD_API;
+
+/**
+ * @brief Stop watching all currently watched lines (if any) for this chip.
+ * @param chip GPIO chip the lines of which should no longer be watched.
+ * @return 0 on success, -1 on failure.
+ */
+int gpiod_chip_unwatch_all(struct gpiod_chip *chip) GPIOD_API;
+
+/**
+ * @}
+ *
  * @defgroup __lines__ GPIO line operations
  * @{
  *
